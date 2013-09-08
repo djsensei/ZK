@@ -27,3 +27,17 @@ discardsperdraw = [0,0,0,1,0,0]
 
 # deliverylimit = how many cards a player can deliver to another during his turn
 deliverylimit = 100
+
+# empupcost = a dict of upgrade costs for employees [1->2, 2->3]
+empupcost = {
+'stocker':[5,8],
+'delivery':[5,8],
+'security':[5,8],
+'lookout':[5,8],
+'janitor':[5,8]}
+
+# empnames = a list of employee names to choose from
+empnames = ['stocker', 'delivery', 'security', 'lookout', 'janitor']
+
+# empdiff = how many employees you get if difficulty is [easy, med, hard]
+empdiff = [4,3,2]

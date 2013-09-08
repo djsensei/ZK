@@ -1,22 +1,41 @@
-# - The basic classes for "Someone's in the Kitchen with Zombies"
+# - The basic classes and functions for "Someone's in the Kitchen with Zombies"
 
-''' 8/24/13 update: 
-updated classes from old version to new cooperative version
-todo: figure out employee skills - 
-        list each class of skill as an individual attribute, set most to None?
-
-'''
 import random
 from ZKSettings import *
 from ZKCards import * 
-# ingnamenum, ingabbvnum, ingnumabbv, ingnumname, ingabbvname, ingdata, cakedata, empdata, zombiedata
 
-''' Probably obsolete, but figure out how to make employees work first
 class Employee:
-	def __init__(self, name, skill):
+	def __init__(self, name):
 		self.name = name
-		self.skill = skill # the employee's bonus skill
-'''
+		self.tier = 1
+		
+	def upgrade(self, cakes):
+		# returns None if failed, an array of cake(s) to spend if successful.
+		if self.tier == 3:
+			return None
+		price = empupcost[self.name][self.tier-1]
+		power = 0
+		for i in range(len(cakes)):
+			power += cakedata[cakes[i]][1]
+		if power < price:
+			return None
+		spend = self.upgradeprompt(price, cakes)
+		self.tier += 1
+		return spend
+		
+	def upgradeprompt(self, price, cakes):
+		# returns an array of cake(s) to spend
+		print("You must spend %s to upgrade your %s." % (price, self.name))
+		print("Here are your available cakes:")
+		for i in range(len(cakes)):
+			print(cakes[i] + ' (' + str(cakedata[cakes[i]][1]) + ')')
+		spend = input("Enter the cake(s) to feed him: ").split()
+		sum = 0
+		for j in range(len(spend)):
+			sum += cakedata[spend[j]][1]
+		if sum < price:
+			spend = self.upgradeprompt(price, cakes)
+		return spend
 	
 class Player:
 	def __init__(self, name):
@@ -41,13 +60,14 @@ class Player:
 		return s
 		
 class Game:
-	def __init__(self, id, nump):
+	def __init__(self, id, nump, diff):
 		self.id = id
 		self.nump = nump
+		self.diff = diff # 1, 2, or 3 for easy, medium, hard
 		self.cakemenu = ['','',''] # an array of 3 face-up cake cards
 		self.cakedeck = [] # a deck of cake cards, to be drawn into the menu
 		self.zombiedeck = [] # a deck of zombie cards
-		self.zombiedead = [] # discarded zombies
+		self.zombiedead = [] # discarded zombies (unused at the moment)
 		self.ingdeck = [] # a deck of ingredients to draw from
 		self.ingdiscard = [] # discarded ingredients
 		self.cakediscard = [] # discarded cakes
@@ -62,28 +82,34 @@ class Game:
 			self.players[i] = Player(i)
 			self.players[i].position = j
 			j += 1
-			
-	'''
-	Serious Game Functions
-	'''
-	def play(self):
+		self.employees = {} # a dict of Employee objects
+		
 		# create and shuffle decks
 		self.formdecks()
 		
-		# deal starting hands
+		# deal starting hands and employees
 		for i in self.playernames:
 			self.draw(i, 's')
-				
+		self.hireemployees()
+		
 		# deal starting cake menu
 		for i in range(3):
 			self.newcake(i)
 		
+	'''
+	Serious Game Functions
+	'''
+	def play(self):
 		# three days of action!
 		for i in range(3):
 			self.day(i)
 			
 		# the endgame...
 		self.endgamedisp()
+		
+	def gameover(self):
+		# you lose!
+		print("dang, that's it.")
 			
 	def day(self, n):
 		if n > 0:
@@ -104,16 +130,27 @@ class Game:
 			self.round(1,r,n)
 			r += 1
 		
-		#day cleanup stuff?
+		# upgrade employees
+		if n < 2:
+			if self.employees:
+				self.empupgradeprompt()
+		
 	
 	def round(self, ztoggle, rnum, dnum):
 		# reveal zombie (if ztoggle == 1)
+		z = None
 		if ztoggle == 1:
 			z = self.zombiedeck[0]
 			self.zombiedeck = self.zombiedeck[1:]
 			self.roundstartdisp(1, rnum, dnum, z)
 		else:
 			self.roundstartdisp(0, rnum, dnum)
+			
+		# check for early employee abilities
+		self.earlyempcheck()
+		
+		# display everything relevant
+		self.dispemps()
 		self.casedisplay()
 		self.dispmenu()
 		self.disphands()
@@ -122,10 +159,11 @@ class Game:
 		for i in range(self.nump):
 			self.turn(self.playernames[i])
 			
-		# employee abilities --TODO--
+		# employee abilities
+		z = self.empcheck(z)
 		
 		# feed zombie
-		if ztoggle == 1:
+		if z:
 			self.zombiefeedprompt(z)
 			
 	# feedzombie discards the cake(s) and the zombie and returns 1 if fed properly
@@ -187,8 +225,10 @@ class Game:
 			for j in range(len(newings)):
 				self.players[pname].ingredients[ingnamenum[newings[j]]] += 1
 		elif type == 'e':
-			# TODO - employee stuff!
-			print('bonerjam')
+			if len(self.ingdeck) < 1:
+				self.ingreshuffle()
+			self.players[pname].ingredients[ingnamenum[self.ingdeck[0]]] += 1
+			self.ingdeck = self.ingdeck[1:]
 	
 	def bakecake(self, pname, cname):
 		# returns 1 if the cake is baked, and 0 if the cake cannot be baked
@@ -286,6 +326,11 @@ class Game:
 		#for e in empdata:
 		#	self.employeepile.append(e)
 		#random.shuffle(self.employeepile)
+	
+	def hireemployees(self):
+		random.shuffle(empnames)
+		for i in range(empdiff[self.diff - 1]):
+			self.employees[empnames[i]] = Employee(empnames[i])
 			
 	def ingreshuffle(self):
 		# shuffles discarded ingredients back into the ingredient draw deck
@@ -306,6 +351,35 @@ class Game:
 		if len(self.cakedeck) == 0:
 			self.cakereshuffle()
 			
+	def earlyempcheck(self):
+		# checks employee abilities for beginning of round
+		# right now, it's just 'lookout'
+		if 'lookout' in self.employees:
+			self.emplookout(self.employees['lookout'].tier)
+	
+	def empcheck(self, z = None):
+		# checks on/activates employee abilities at the end of a round
+		# returns the present zombie or None if there is no zombie
+		if len(self.employees) == 0:
+			return z
+		
+		if 'delivery' in self.employees:
+			self.empdeliverprompt()
+		
+		if 'stocker' in self.employees:
+			self.empstockupprompt()
+		
+		if 'security' in self.employees:
+			if z:
+				if zombiedata[z][1] - self.employees['security'].tier < 3:
+					# assumes that max bounce level = tier + 2
+					self.zombiebouncedisp()
+					z = None
+			
+		if 'janitor' in self.employees:
+			self.empjanitorprompt()
+			
+		return z
 	'''
 	Prompt Functions
 	(Currently, all input() statements should live here.)
@@ -381,7 +455,6 @@ class Game:
 				for i in range(w):
 					self.players[pname].ingredients[ingabbvnum[burn[i]]] -= 1
 				k = 1
-
 		
 	def zombiefeedprompt(self, z):
 		print("Time to feed the Zombie!")
@@ -401,11 +474,96 @@ class Game:
 			print("Enter the cake(s) to feed the zombie, or enter 'brains'")
 			feed = input("to serve one of your employees instead: ")
 			if feed == "brains":
-				self.brainfeed()
+				self.brainfeedprompt()
 				fed = 1
 			else:
 				fed = self.feedzombie(z, feed.split())
 		print("Your guest left quite satisfied!")
+	
+	def brainfeedprompt(self):
+		# when cake is not enough... feed an employee or it's game over!
+		if self.employees:
+			for i in self.employees:
+				print("To sacrifice your %s, enter '%s'." % (i,i))
+			sac = 'nope'
+			while sac not in self.employees:
+				sac = input("Choose your fate: ")
+			del self.employees[sac]
+		else: 
+			self.alive = False
+			self.gameover()
+		
+	def empupgradeprompt(self):
+		for e in self.employees:
+			if self.employees[e].tier < 3:
+				print("Do you want to upgrade your tier-%s %s?" % (self.employees[e].tier, e))
+				yn = input("It will cost you %s. y/n? " % empupcost[e][self.employees[e].tier-1])
+				if yn == "y":
+					spend = self.employees[e].upgrade(self.displaycase)
+					if spend == None:
+						print("%s upgrade failed." % e)
+					else:
+						for i in range(len(spend)):
+							self.displaycase.remove(spend[i])
+							
+	def empdeliverprompt(self):
+		# handles employee deliveries
+		self.disphands()
+		t = self.employees['delivery'].tier
+		if t == 1:
+			print("Your delivery crew offers you one free 1-card delivery.")
+			d = input("Enter the delivering player's name or 'no' if you don't want it: ").split()
+		elif t == 2:
+			print("Your delivery crew offers you two free 1-card deliveries.")
+			d = input("Enter the delivering players name(s) or 'no' if you don't want them: ").split()
+		else:
+			print("Your delivery crew offers each player one free 1-card delivery.")
+			d = input("Enter the name of each player who wants to deliver a card: ").split()
+		if d[0] != 'no':
+			for j in range(len(d)):
+				recip = 'BOOURNSXXXSHABLAOW'
+				while recip not in self.playernames:
+					recip = input("Who would you like to deliver to, %s? " % d[j])
+				i = input("Which ingredient would you like to deliver to %s? " % recip)
+				# send to recip's hand
+				self.players[recip].ingredients[ingabbvnum[i]] += 1
+				# remove from sender's hand
+				self.players[d[j]].ingredients[ingabbvnum[i]] -= 1
+	
+	def empjanitorprompt(self):
+		n = self.employees['janitor'].tier - 1
+		if n > 0:
+			if len(self.ingdiscard) > 0:
+				print("One player may search the discards for %s ingredients" % n)
+				self.disphands()
+				who = 'jabroniXXXalert'
+				while who not in self.playernames:
+					who = input("Who will scavenge? ")
+				for i in range(n):
+					sel = ''
+					while sel not in self.ingdiscard:
+						sel = input("Which ingredient would you like? ")
+						if sel in self.ingdiscard:
+							self.players[who].ingredients[ingnamenum[sel]] += 1
+							self.ingdiscard.remove(sel)
+						else:
+							print("%s is not available." % sel)
+							
+	def empstockupprompt(self):
+		t = self.employees['stocker'].tier
+		if t < 3:
+			# 1 player, tier cards
+			print("One player may draw %s ingredients from the stocker" % t)
+			who = "blasfasdfadfasdds"
+			while who not in self.playernames:
+				who = input("Who gets to draw? ")
+			for i in range(t):
+				self.draw(who, 'e')
+		else:
+			# all players, 1 card
+			for i in range(self.nump):
+				self.draw(self.playernames[i],'e')
+			print("The stocker provided every player with an extra ingredient!")
 	'''
 	Simple Display Functions
 	(Currently, all print() statements without input() should live here.)
@@ -446,6 +604,12 @@ class Game:
 			print( i + ": " + self.players[i].ingstr())
 		print('')
 		
+	def dispemps(self):
+		print("Here are the current employees:")
+		for i in self.employees:
+			print("%s, tier %s" % (i, self.employees[i].tier))
+		print("")
+		
 	def casedisplay(self):
 		if len(self.displaycase) == 0:
 			print("Your display case is empty! You had better bake something...")
@@ -479,6 +643,20 @@ class Game:
 		else: 
 			print("Ah, the calm morning. Perfect for baking peacefully!")
 			print('')
+			
+	def emplookout(self, tier):
+		# displays upcoming zombies
+		for i in range(tier):
+			if zombiedata[self.zombiedeck[i]][3] != None:
+				print("Next Zombie approaching: %s. Hunger %s. Craving %s." % (zombiedata[self.zombiedeck[i]][0], zombiedata[self.zombiedeck[i]][1], cakedata[zombiedata[self.zombiedeck[i]][3]][0]))
+			elif zombiedata[self.zombiedeck[i]][4] != None:
+				print("Next Zombie approaching: %s. Hunger %s. Craving a cake with %s." % (zombiedata[self.zombiedeck[i]][0], zombiedata[self.zombiedeck[i]][1], zombiedata[self.zombiedeck[i]][4]))
+			else:
+				print("Next Zombie approaching: %s. Hunger %s." % (zombiedata[self.zombiedeck[i]][0], zombiedata[self.zombiedeck[i]][1]))
+	
+	def zombiebouncedisp(self):
+		# displays when your security employee bounces a zombie
+		print("Your security guard bounced that punk-ass zombie!")
 	
 	def endgamedisp(self):
 		if self.alive == True:

@@ -1,8 +1,7 @@
-'''
+from ZKClasses import *
 
-Presently, this module is unnecessary. 
-
-Once the rest are properly tuned up and ready to rock, it will become
-more useful. 
-
-'''
+print("===== Someone's in the Kitchen With Zombies! =====")
+nump = int(input("How many players (2-6)? "))
+diff = int(input("How difficult (1 = easy, 2 = med, 3 = hard)? "))
+game = Game(123123, nump, diff)
+game.play()

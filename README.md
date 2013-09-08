@@ -56,13 +56,13 @@ Card Variables (dictionaries which contain all information about a given card):
 	ingdata    = ingredients
 	cakedata   = cakes
 	zombiedata = zombies
-	empdata    = employees
 	
 Card Helper Variables
-	ingnamenum = converts an ingredient name to its array reference number
-	ingabbvnum = converts an ingredient abbreviation " " "
-	ingnumname = converts an ingredient number to its name
-	ingnumabbv = converts an ingredient number to its abbreviation
+	ingnamenum  = converts an ingredient name to its array reference number
+	ingabbvnum  = converts an ingredient abbreviation " " "
+	ingnumname  = converts an ingredient number to its name
+	ingnumabbv  = converts an ingredient number to its abbreviation
+	ingabbvname = converts an ingredient abbreviation to its name
 	
 Game Settings Variables
 	morninglength    = # zombie-free rounds to start each day (array length 3)
@@ -74,6 +74,9 @@ Game Settings Variables
 	cardsperdraw     = # cards a player takes per ingredient draw
 	discardsperdraw  = # cards a player must immediately discard after drawing
 	deliverylimit    = # cards a player can deliver to another during his turn
+	empupcost        = dictionary of employee upgrade costs
+	empnames         = array of employee names
+	empdiff          = array of how many employees you get at each difficulty level
 ========== /Global Variables ==========
 
 ========== Versions, Updates ==========
@@ -90,8 +93,12 @@ Game Settings Variables
 	All text (print() and input() statements) moved to their own functions.
 	Cosmetic improvements in text functions.
 	
+9/8/13 - Version 0.3
+	Employees are now integrated!
+	Ingredient-drawing bugs may appear when deck empties, but ingreshuffle()
+	*should* work. 
+	
 TODO:
-	Add Employees, integrate them into the game functions
 	Add Death (once there is no employee to consume)
 	Add logging capabilities for postgame data analysis. 
 	Investigate using pygame for GUI

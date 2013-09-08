@@ -81,18 +81,6 @@ cakedata = {
 'fruitcake':('Fruitcake', 6, [0,0,0,0,0,0,1,1,0,0,2], 2),
 'brownies':('Fudge Brownies', 6, [0,1,2,0,0,0,0,1,0,0,0], 2)}
 
-# employee cards (name, salary, skill)
-'''
-employees = {
-'stockboy':Employee('Stock Boy', , 'xdraw'),
-'security':Employee('Security' , , 'bounce'),
-'cashier':Employee('Cashier', , 'cash'),
-'speedy':Employee('Speedy Chef', , 'fastbake'),
-'creative':Employee('Creative Chef', , 'cakeswap'),
-'hr':Employee('Human Resources', , 'extrahands'),
-'':Employee()}
-
-'''
 # zombie cards (name, hunger, gender, cakecrave, ingredientcrave) 
 zombiedata = {
 'cop':('Officer Brainsley', 6, 'He', 'donuts', None),
