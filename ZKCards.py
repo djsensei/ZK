@@ -85,7 +85,7 @@ cakedata = {
 zombiedata = {
 'cop':('Officer Brainsley', 6, 'He', 'donuts', None),
 'brokenheart':('Breakup Betty', 8, 'She', None, 'chocolate'),
-'stoner':('Stoney', 9, None, 'He', 'frosting'),
+'stoner':('Stoney', 9, 'He', None, 'frosting'),
 'z10':('Lobey Cephalonut', 10, 'He', None, None),
 'z9':('Hoffer', 9, 'He', None, None),
 'z8':('Chimpo', 8, 'He', None, None),

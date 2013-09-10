@@ -83,6 +83,7 @@ class Game:
 			self.players[i].position = j
 			j += 1
 		self.employees = {} # a dict of Employee objects
+		self.actionplan = [] # an array used in the autobot for player turns
 		
 		# create and shuffle decks
 		self.formdecks()
@@ -178,8 +179,9 @@ class Game:
 				mmm = 1
 			elif cakedata[cakes[0]][1] >= zombiedata[z][1]: # cake is powerful enough
 				mmm = 1
-			elif zombiedata[z][4] in self.cakeingfull(cakes[0]): # ingredient craving met
-				mmm = 1
+			elif zombiedata[z][4]: # ingredient craving exists
+				if cakedata[cakes[0]][2][ingnamenum[zombiedata[z][4]]] > 0:
+					mmm = 1
 			else: 
 				mmm = 0
 		else:
@@ -237,11 +239,12 @@ class Game:
 				# spend ingredients
 				for i in range(10):
 					self.players[pname].ingredients[i] -= cakedata[cname][2][i]
-				
+					for j in range(cakedata[cname][2][i]):
+						self.ingdiscard.append(ingnumname[i])
 				# wildcards?
 				w = cakedata[cname][2][10]
 				if w > 0:
-					self.wildcardprompt(pname, cname, w)
+					self.wildcardprompt(pname, w)
 							
 				# place cake in case
 				self.displaycase.append(cname)
@@ -276,13 +279,13 @@ class Game:
 	def deliver(self, pname):
 		# returns 1 after a successful delivery, and 0 if the player doesn't deliver anything
 		recip, pay = self.deliveryprompt(pname)
+		if len(pay) == 0:
+			return 0
 		for i in pay:
 			# send to recip's hand
 			self.players[recip].ingredients[ingabbvnum[i]] += 1
 			# remove from sender's hand
 			self.players[pname].ingredients[ingabbvnum[i]] -= 1
-		if len(pay) == 0:
-			return 0
 		return 1
 		
 	def discard(self, pname, handsize):
@@ -380,6 +383,19 @@ class Game:
 			self.empjanitorprompt()
 			
 		return z
+		
+	def casesort(self):
+		# sorts the display case, weakest cakes to strongest
+		# create tuples of display cakes and their power
+		cakepowers = []
+		for i in range(len(self.displaycase)):
+			cakepowers.append((self.displaycase[i], cakedata[self.displaycase[i]][1]))
+		# sort by power
+		sorted(cakepowers, key = lambda cakepowers: cakepowers[1])
+		# recreate case by name
+		self.displaycase = []
+		for i in range(len(cakepowers)):
+			self.displaycase.append(cakepowers[i][0])
 	'''
 	Prompt Functions
 	(Currently, all input() statements should live here.)
@@ -445,7 +461,7 @@ class Game:
 		return s
 		
 		
-	def wildcardprompt(self, pname, c, w):
+	def wildcardprompt(self, pname, w):
 		k = 0
 		while k == 0:
 			print("This cake has %s wildcards in the cost!" % w)
@@ -454,6 +470,7 @@ class Game:
 			if len(burn) == w:
 				for i in range(w):
 					self.players[pname].ingredients[ingabbvnum[burn[i]]] -= 1
+					self.ingdiscard.append(ingabbvname[burn[i]])
 				k = 1
 		
 	def zombiefeedprompt(self, z):
@@ -505,6 +522,7 @@ class Game:
 					else:
 						for i in range(len(spend)):
 							self.displaycase.remove(spend[i])
+							self.cakediscard.append(spend[i])
 							
 	def empdeliverprompt(self):
 		# handles employee deliveries
