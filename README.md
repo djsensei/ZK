@@ -32,7 +32,7 @@ Each player gets one turn per round, and has a variety of options at his or her 
 ========== /Rules + Gameplay ==========
 
 ========== Files ==========
-ZKClasses.py
+ZKEngine.py
 	The meat and potatoes. Contains the essential Player and Game classes, as well
 	as all game functions. 
 ZKCards.py
@@ -44,13 +44,12 @@ ZKSettings.py
 	alter the numbers in this file. 
 ZKGame.py
 	A simple script that ties it all together. Run this script to play the game!
-ZKTester.py
-	This script exists to test individual functions without having to play through 
-	an entire game.
+ZKBot.py
+	Instructs the bot to play tons of games and report the results. 
 ========== /Files ==========
 
 ========== Global Variables ==========
-All global variables are imported by ZKClasses from ZKCards and ZKSettings.
+All global variables are imported by ZKEngine from ZKCards and ZKSettings.
 
 Card Variables (dictionaries which contain all information about a given card):
 	ingdata    = ingredients
@@ -98,8 +97,17 @@ Game Settings Variables
 	Ingredient-drawing bugs may appear when deck empties, but ingreshuffle()
 	*should* work. 
 	
+9/18/13 - Version 0.4
+	The autobot has been built! It plays through a game automatically, generating
+	winrate data for balance testing. 
+	To play a live (text input) game, run ZKGame.py.
+	To run a series of bot games, use ZKBot.py.
+	Game engine moved from ZKClasses to ZKEngine. Inherited classes now used to distinguish
+	between bot and live games. The BotGame and LiveGame classes both inherit from the 
+	standard Game class, providing the necessary prompt and display functions for it to work. 
+	Game logging now enabled: results go to ZKtestlog.txt.
+	ZKTestAnalysis reads from ZKtestlog and analyze results. 
+	
 TODO:
-	Add Death (once there is no employee to consume)
-	Add logging capabilities for postgame data analysis. 
 	Investigate using pygame for GUI
 ========== /Versions, Updates ==========

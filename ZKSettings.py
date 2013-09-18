@@ -16,7 +16,7 @@ maxhandsizeround = 100
 # endrounddiscard = number of cards you can keep at the end of a day
 endrounddiscard = 100
 
-# playernames = a silly array of player names for use in playtesting
+# playernames = an array of player names for use in playtesting
 defaultplayernames = ['Crank', 'Stepho', 'Dmo', 'Ethan', 'K2', 'Erin']
 
 # cardsperdraw = how many cards a player takes per ingredient draw
